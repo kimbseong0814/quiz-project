@@ -19,4 +19,8 @@ app.get('/', (_req, res) => {
   res.send('backend ok')
 })
 
+app.get('/health', (_req, res) => {
+  res.status(200).send('ok')
+})
+
 export default app
