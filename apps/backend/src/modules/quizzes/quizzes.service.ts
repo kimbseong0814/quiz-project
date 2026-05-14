@@ -1,4 +1,7 @@
-export const quizzes = [
+import { AppError } from '../../common/errors/AppError.js'
+import type { QuizDto } from './quizzes.dto.js'
+
+const quizzes: QuizDto[] = [
   {
     id: 1,
     question: '이 사진은 어떤 날의 추억일까요?',
@@ -21,3 +24,17 @@ export const quizzes = [
     answer: '봄',
   },
 ]
+
+export function getQuizzes() {
+  return quizzes
+}
+
+export function getQuizById(id: number) {
+  const quiz = quizzes.find((item) => item.id === id)
+
+  if (!quiz) {
+    throw new AppError(404, '퀴즈를 찾을 수 없습니다.')
+  }
+
+  return quiz
+}

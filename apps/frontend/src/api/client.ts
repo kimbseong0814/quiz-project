@@ -13,3 +13,22 @@ export async function getQuizzes() {
 
   return result.data
 }
+
+export async function createResult(score: number, total: number) {
+  const response = await fetch(`${API_BASE_URL}/api/results`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      score,
+      total,
+    }),
+  })
+
+  if (!response.ok) {
+    throw new Error('결과 저장에 실패했습니다.')
+  }
+
+  return response.json()
+}

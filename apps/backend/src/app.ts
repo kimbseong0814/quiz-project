@@ -1,9 +1,9 @@
 import express, { type Express } from 'express'
 import cors from 'cors'
 import dotenv from 'dotenv'
-import swaggerUi from 'swagger-ui-express'
 import router from './routes/index.js'
-import openApiDocument from './docs/swagger.js'
+import { errorHandler } from './common/errors/errorHandler.js'
+import { openApiDocument, swaggerUiServe, swaggerUiSetup } from './docs/swagger.js'
 
 dotenv.config()
 
@@ -18,7 +18,7 @@ app.use(
 
 app.use(express.json())
 
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(openApiDocument))
+app.use('/api-docs', swaggerUiServe, swaggerUiSetup)
 
 app.get('/openapi.json', (_req, res) => {
   res.json(openApiDocument)
@@ -33,5 +33,7 @@ app.get('/health', (_req, res) => {
 })
 
 app.use('/api', router)
+
+app.use(errorHandler)
 
 export default app

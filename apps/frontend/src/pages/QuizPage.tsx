@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { getQuizzes } from '../api/client'
+import { createResult, getQuizzes } from '../api/client'
 import type { Quiz } from '../types/quiz'
 
 function QuizPage() {
@@ -10,6 +10,7 @@ function QuizPage() {
   const [isFinished, setIsFinished] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
   const [errorMessage, setErrorMessage] = useState('')
+  const [isSaving, setIsSaving] = useState(false)
 
   useEffect(() => {
     getQuizzes()
@@ -23,6 +24,51 @@ function QuizPage() {
         setIsLoading(false)
       })
   }, [])
+
+  const currentQuiz = quizzes[currentIndex]
+
+  const handleSelect = (choice: string) => {
+    setSelected(choice)
+  }
+
+  const handleNext = async () => {
+    if (!currentQuiz) return
+
+    if (!selected) {
+      alert('답을 선택해주세요.')
+      return
+    }
+
+    const nextScore = selected === currentQuiz.answer ? score + 1 : score
+
+    if (selected === currentQuiz.answer) {
+      setScore((prev) => prev + 1)
+    }
+
+    if (currentIndex === quizzes.length - 1) {
+      try {
+        setIsSaving(true)
+        await createResult(nextScore, quizzes.length)
+      } catch {
+        alert('결과 저장에 실패했습니다.')
+      } finally {
+        setIsSaving(false)
+        setIsFinished(true)
+      }
+
+      return
+    }
+
+    setCurrentIndex((prev) => prev + 1)
+    setSelected('')
+  }
+
+  const handleRestart = () => {
+    setCurrentIndex(0)
+    setSelected('')
+    setScore(0)
+    setIsFinished(false)
+  }
 
   if (isLoading) {
     return (
@@ -44,36 +90,14 @@ function QuizPage() {
     )
   }
 
-  const currentQuiz = quizzes[currentIndex]
-
-  const handleSelect = (choice: string) => {
-    setSelected(choice)
-  }
-
-  const handleNext = () => {
-    if (!selected) {
-      alert('답을 선택해주세요.')
-      return
-    }
-
-    if (selected === currentQuiz.answer) {
-      setScore((prev) => prev + 1)
-    }
-
-    if (currentIndex === quizzes.length - 1) {
-      setIsFinished(true)
-      return
-    }
-
-    setCurrentIndex((prev) => prev + 1)
-    setSelected('')
-  }
-
-  const handleRestart = () => {
-    setCurrentIndex(0)
-    setSelected('')
-    setScore(0)
-    setIsFinished(false)
+  if (!currentQuiz) {
+    return (
+      <main className="quiz-page">
+        <section className="quiz-card">
+          <p>퀴즈가 없습니다.</p>
+        </section>
+      </main>
+    )
   }
 
   if (isFinished) {
@@ -115,8 +139,12 @@ function QuizPage() {
           ))}
         </div>
 
-        <button className="primary-button" onClick={handleNext}>
-          {currentIndex === quizzes.length - 1 ? '결과 보기' : '다음 문제'}
+        <button className="primary-button" onClick={handleNext} disabled={isSaving}>
+          {isSaving
+            ? '결과 저장 중...'
+            : currentIndex === quizzes.length - 1
+              ? '결과 보기'
+              : '다음 문제'}
         </button>
       </section>
     </main>
